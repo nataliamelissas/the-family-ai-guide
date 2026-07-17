@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { mapFeedToPosts, mapRss2JsonToPosts } from "./parse-feed.mjs";
 
 const FEED_URL = "https://thefamilyaiguide.substack.com/feed";
@@ -13,16 +13,33 @@ const OUTPUT_PATH = resolve(
   "../src/content/generated/posts.json",
 );
 
-/** Surfaces in the Actions run summary rather than scrolling past in a log. */
-function warn(message) {
-  const prefix = process.env.GITHUB_ACTIONS === "true" ? "::warning::" : "⚠ ";
-  console.warn(`${prefix}${message}`);
+/**
+ * Runs triggered by a schedule or by hand exist only to pull in new posts, so
+ * failing to refresh is the whole job failing: it should turn the run red and
+ * send the usual failure email. A push is different. Its point is shipping a
+ * code change, and blocking that over a feed outage would be worse than
+ * deploying with slightly older posts.
+ */
+const REFRESH_ONLY_EVENTS = new Set(["schedule", "workflow_dispatch"]);
+
+export function shouldFailOnStaleSnapshot(eventName) {
+  return REFRESH_ONLY_EVENTS.has(eventName ?? "");
+}
+
+function annotate(level, message) {
+  const inActions = process.env.GITHUB_ACTIONS === "true";
+  const fallbackPrefix = level === "error" ? "✗ " : "⚠ ";
+  const prefix = inActions ? `::${level}::` : fallbackPrefix;
+  const log = level === "error" ? console.error : console.warn;
+  log(`${prefix}${message}`);
 }
 
 async function getText(url) {
   const response = await fetch(url, {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
-    headers: { accept: "application/rss+xml, application/xml, text/xml, application/json" },
+    headers: {
+      accept: "application/rss+xml, application/xml, text/xml, application/json",
+    },
   });
 
   if (!response.ok) {
@@ -65,13 +82,7 @@ const SOURCES = [
   { name: "rss2json", fetch: fetchViaRss2Json },
 ];
 
-/**
- * Tries each source in order and keeps the committed snapshot if all fail, so
- * an outage degrades to slightly stale posts instead of a broken deploy. The
- * fallback is always announced: a silent fallback looks identical to success
- * while the site quietly stops updating.
- */
-async function main() {
+export async function main() {
   const failures = [];
 
   for (const source of SOURCES) {
@@ -80,7 +91,10 @@ async function main() {
       await writePosts(posts, source.name);
       console.log(`✓ Fetched ${posts.length} post(s) via ${source.name}.`);
       if (failures.length > 0) {
-        warn(`Primary feed unavailable (${failures.join("; ")}). Used ${source.name}.`);
+        // Cloudflare always blocks the direct feed from CI, so reaching the
+        // fallback is the routine path there. Warning on it every run would
+        // train us to ignore the warning that actually matters below.
+        console.log(`  (skipped ${failures.join("; ")})`);
       }
       return;
     } catch (error) {
@@ -91,13 +105,31 @@ async function main() {
 
   const summary = failures.join("; ");
 
-  if (existsSync(OUTPUT_PATH)) {
-    warn(`Could not refresh posts (${summary}). Serving the existing snapshot, so the site may show an older post.`);
+  if (!existsSync(OUTPUT_PATH)) {
+    annotate("error", `Could not fetch posts (${summary}) and no snapshot exists.`);
+    process.exitCode = 1;
     return;
   }
 
-  console.error(`✗ Could not fetch posts (${summary}) and no snapshot exists.`);
-  process.exitCode = 1;
+  if (shouldFailOnStaleSnapshot(process.env.GITHUB_EVENT_NAME)) {
+    annotate(
+      "error",
+      `Could not refresh posts (${summary}). The site keeps showing older posts until this is fixed.`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  annotate(
+    "warning",
+    `Could not refresh posts (${summary}). Deploying with the existing snapshot so this change still ships.`,
+  );
 }
 
-await main();
+// Guarded so tests can import the helpers without running the fetch.
+const isDirectRun =
+  process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectRun) {
+  await main();
+}

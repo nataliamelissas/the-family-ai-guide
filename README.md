@@ -43,11 +43,20 @@ The script therefore tries sources in order:
 2. **[rss2json](https://rss2json.com)**, which reads the same public feed from an address Cloudflare doesn't challenge. This is what actually runs in CI.
 3. **The committed snapshot**, if both fail. The deploy still succeeds with slightly older posts.
 
-`posts.json` records which source produced it in its `source` field.
-
-Whenever the build falls back, it prints a GitHub **warning annotation** on the run. That matters: a silent fallback looks exactly like success while the site quietly stops updating. If you see `Could not refresh posts` on a run, the homepage is serving stale posts and needs attention.
+`posts.json` records which source produced it in its `source` field. Falling back to rss2json is the normal path in CI, so it's just a log line, not a warning.
 
 Both sources are mapped to identical output, and a test enforces that, so readers can't tell which one was used.
+
+#### How you find out if posts stop updating
+
+If **both** sources fail, the site keeps serving the committed snapshot rather than breaking. What happens next depends on why the build ran:
+
+| Trigger | Behaviour | Why |
+| --- | --- | --- |
+| `schedule` / manual run | **Fails the run** (red X, GitHub emails you) | Refreshing posts was the entire point of the run, so failing to do it is a failure worth hearing about. |
+| `push` | Warns and deploys anyway | The point was shipping your code change. A feed outage shouldn't block that, and older posts still render fine. |
+
+This split exists because a warning alone is too quiet: GitHub only emails on failure, and a warning leaves the run green, so nobody would notice the homepage had frozen.
 
 ### Notes (manual)
 
