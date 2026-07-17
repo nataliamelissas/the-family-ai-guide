@@ -1,0 +1,66 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [master]
+  schedule:
+    # GitHub cron is UTC only and cannot be set to Mountain Time.
+    # "35 1-9 * * 5" = hourly at :35 from Fri 01:35 to Fri 09:35 UTC, which is
+    # Thu 7:35pm through Fri 3:35am Mountain (an hour earlier during standard
+    # time). This spans the whole Thursday-night publishing window, so a post
+    # published late still reaches the site within the hour.
+    - cron: "35 1-9 * * 5"
+  # Lets you refresh the site on demand from the Actions tab.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never let two deploys race; queue them instead of cancelling a live one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # Runs before the build so the site can be built for whatever URL Pages
+      # serves it from (project path today, custom domain later).
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm test
+
+      # `prebuild` pulls the latest posts from the Substack feed.
+      - run: npm run build
+        env:
+          VITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

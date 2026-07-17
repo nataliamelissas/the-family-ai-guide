@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+
+# Logs & caches
+*.log
+npm-debug.log*
+.vite/
+coverage/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.local
+
+# --- Private working material (NOT part of the public website) ---
+# The Family AI Guide drafts, research digests, and survey data live in this
+# folder locally but must never be committed to the public Pages repo.
+daily-digest-*.md
+daily-news-*.md
+draft_*.md
+substack-notes-*.md
+new-subscriber-*.md
+survey_results.json
+jotform*
+*_launch_schedule.docx
+*.docx

@@ -1,0 +1,17 @@
+.moreLink {
+  display: inline-block;
+  margin-top: var(--space-lg);
+  color: var(--color-accent);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.moreLink:hover {
+  color: var(--color-accent-hover);
+  text-decoration: underline;
+}
+
+.eventList {
+  display: grid;
+  gap: var(--space-lg);
+}

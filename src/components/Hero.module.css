@@ -1,0 +1,77 @@
+.hero {
+  position: relative;
+  padding-block: var(--space-5xl) var(--space-4xl);
+  overflow: hidden;
+  background-color: var(--color-canvas);
+}
+
+/* Soft warm glow behind the headline: warmth without imagery. */
+.hero::before {
+  content: "";
+  position: absolute;
+  top: -30%;
+  left: 50%;
+  width: min(60rem, 120%);
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    circle,
+    var(--color-primary-soft) 0%,
+    transparent 62%
+  );
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.inner {
+  position: relative;
+  max-width: var(--container-narrow);
+}
+
+.eyebrow {
+  margin-bottom: var(--space-md);
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.title {
+  font-size: var(--text-5xl);
+  letter-spacing: -0.03em;
+}
+
+.mission {
+  margin-top: var(--space-lg);
+  color: var(--color-text);
+  font-size: var(--text-xl);
+  line-height: var(--leading-relaxed);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-xl);
+}
+
+.byline {
+  margin-top: var(--space-xl);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 48rem) {
+  .hero {
+    padding-block: var(--space-3xl) var(--space-2xl);
+  }
+
+  .title {
+    font-size: var(--text-3xl);
+  }
+
+  .mission {
+    font-size: var(--text-lg);
+  }
+}

@@ -1,0 +1,39 @@
+.intro {
+  color: var(--color-text);
+  font-size: var(--text-lg);
+  line-height: var(--leading-relaxed);
+}
+
+.intro + .intro {
+  margin-top: var(--space-md);
+}
+
+.founderGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: var(--space-lg);
+}
+
+.email {
+  display: inline-block;
+  color: var(--color-primary);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+}
+
+.email:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 48rem) {
+  .founderGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .email {
+    font-size: var(--text-lg);
+    overflow-wrap: anywhere;
+  }
+}

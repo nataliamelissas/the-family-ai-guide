@@ -1,0 +1,71 @@
+.card {
+  display: flex;
+  gap: var(--space-xl);
+  padding: var(--space-xl);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 4.5rem;
+  height: 4.5rem;
+  background-color: var(--color-accent-soft);
+  border-radius: var(--radius-md);
+  color: var(--color-accent);
+}
+
+.badgeMonth {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.badgeDay {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+}
+
+.date {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.title {
+  margin-top: var(--space-2xs);
+  font-size: var(--text-xl);
+}
+
+.description {
+  margin-top: var(--space-sm);
+  color: var(--color-text);
+  line-height: var(--leading-relaxed);
+}
+
+.location {
+  margin-top: var(--space-sm);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.action {
+  margin-top: var(--space-lg);
+}
+
+@media (max-width: 48rem) {
+  .card {
+    flex-direction: column;
+    gap: var(--space-lg);
+    padding: var(--space-lg);
+  }
+}
