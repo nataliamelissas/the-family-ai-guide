@@ -58,6 +58,16 @@
   font-size: var(--text-sm);
 }
 
+.locationLink {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.locationLink:hover {
+  color: var(--color-accent-hover);
+}
+
 .action {
   margin-top: var(--space-lg);
 }

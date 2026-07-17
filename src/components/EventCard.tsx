@@ -1,4 +1,5 @@
 import { Button } from "@/components/Button";
+import { EventLocation } from "@/components/EventLocation";
 import { formatLongDate, toDateBadge } from "@/lib/date";
 import type { EventItem } from "@/types/content";
 import styles from "./EventCard.module.css";
@@ -25,7 +26,11 @@ export function EventCard({ event }: EventCardProps) {
         <h3 className={styles.title}>{event.title}</h3>
         <p className={styles.description}>{event.description}</p>
 
-        {event.location && <p className={styles.location}>{event.location}</p>}
+        {event.location && (
+          <p className={styles.location}>
+            <EventLocation event={event} className={styles.locationLink} />
+          </p>
+        )}
 
         {event.registrationUrl && (
           <Button

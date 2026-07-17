@@ -85,9 +85,11 @@
   --transition-fast: 150ms ease;
   --transition-base: 220ms ease;
 
+  /* Bare durations, for `animation` shorthands that supply their own easing. */
+  --duration-slow: 350ms;
+
   /* --- Focus --- */
-  --focus-ring:
-    0 0 0 3px var(--color-canvas), 0 0 0 5px var(--color-accent);
+  --focus-ring: 0 0 0 3px var(--color-canvas), 0 0 0 5px var(--color-accent);
 
   /* --- Layering --- */
   --z-header: 100;

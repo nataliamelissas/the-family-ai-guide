@@ -15,12 +15,17 @@ const SHORT_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
   day: "numeric",
 };
 
+const MONTH_DAY_OPTIONS: Intl.DateTimeFormatOptions = {
+  month: "long",
+  day: "numeric",
+};
+
 /**
  * Date-only strings ("2026-09-11") are parsed by `new Date()` as UTC midnight,
  * which renders as the previous day in negative-offset timezones like Utah's.
  * Constructing from parts keeps the date local and correct.
  */
-function parseDate(value: string): Date {
+export function parseDate(value: string): Date {
   const dateOnlyMatch = DATE_ONLY_PATTERN.exec(value);
   if (!dateOnlyMatch) {
     return new Date(value);
@@ -46,6 +51,11 @@ export function formatLongDate(value: string): string {
 /** e.g. "September 11, 2026". Used for posts and notes. */
 export function formatShortDate(value: string): string {
   return format(value, SHORT_DATE_OPTIONS);
+}
+
+/** e.g. "September 11". Used where the year is already obvious. */
+export function formatMonthDay(value: string): string {
+  return format(value, MONTH_DAY_OPTIONS);
 }
 
 export interface DateBadge {

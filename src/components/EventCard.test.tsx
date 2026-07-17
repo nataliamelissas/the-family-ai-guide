@@ -10,6 +10,7 @@ const EVENT: EventItem = {
   description: "A conversation about what AI means for our kids.",
   startsAt: "2026-09-11",
   location: null,
+  locationUrl: null,
   registrationUrl: null,
 };
 
@@ -55,5 +56,26 @@ describe("EventCard", () => {
       "href",
       "https://example.com/register",
     );
+  });
+
+  it("renders the location as plain text when it has no map link", () => {
+    renderEvent({ ...EVENT, location: "TaliTech, Bountiful, Utah" });
+
+    expect(
+      screen.queryByRole("link", { name: "TaliTech, Bountiful, Utah" }),
+    ).toBeNull();
+    expect(screen.getByText("TaliTech, Bountiful, Utah")).toBeInTheDocument();
+  });
+
+  it("links the location when a map url is set", () => {
+    renderEvent({
+      ...EVENT,
+      location: "TaliTech, Bountiful, Utah",
+      locationUrl: "https://maps.example.com/talitech",
+    });
+
+    expect(
+      screen.getByRole("link", { name: "TaliTech, Bountiful, Utah" }),
+    ).toHaveAttribute("href", "https://maps.example.com/talitech");
   });
 });

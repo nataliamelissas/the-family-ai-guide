@@ -31,6 +31,8 @@ export interface EventItem {
   description: string;
   startsAt: string;
   location: string | null;
+  /** Links the location text (e.g. to a map) when set; plain text otherwise. */
+  locationUrl: string | null;
   registrationUrl: string | null;
 }
 

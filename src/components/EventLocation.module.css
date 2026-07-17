@@ -1,0 +1,14 @@
+/*
+ * inline-flex keeps the pin aligned with the text baseline, and — because the
+ * icon is a replaced element, not text — a `text-decoration: underline` set by
+ * the caller underlines the venue name without drawing a line under the pin.
+ */
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}
+
+.icon {
+  flex-shrink: 0;
+}
