@@ -33,7 +33,21 @@ Posts come from the Substack RSS feed. `scripts/fetch-substack.mjs` runs automat
 
 Excerpts use each post's Substack **subtitle**. If a post has no subtitle, the excerpt falls back to the opening of the body with the byline stripped. So the best way to control how a post reads on the homepage is to write a good subtitle in Substack.
 
-If the feed is unreachable, the build keeps the last committed snapshot and carries on, so a Substack outage can't break a deploy.
+#### Why there are two feed sources
+
+Substack sits behind Cloudflare, which serves GitHub Actions IP ranges a JS challenge that CI can't solve. **Every direct fetch from a GitHub runner gets a 403**, no matter what headers it sends. This was verified from a runner: a browser User-Agent doesn't help, and Substack's JSON API and sitemap are blocked too. Unrelated Substack publications are blocked as well, so this isn't specific to us.
+
+The script therefore tries sources in order:
+
+1. **The Substack feed directly.** Works from a normal network, so this is what runs on your machine.
+2. **[rss2json](https://rss2json.com)**, which reads the same public feed from an address Cloudflare doesn't challenge. This is what actually runs in CI.
+3. **The committed snapshot**, if both fail. The deploy still succeeds with slightly older posts.
+
+`posts.json` records which source produced it in its `source` field.
+
+Whenever the build falls back, it prints a GitHub **warning annotation** on the run. That matters: a silent fallback looks exactly like success while the site quietly stops updating. If you see `Could not refresh posts` on a run, the homepage is serving stale posts and needs attention.
+
+Both sources are mapped to identical output, and a test enforces that, so readers can't tell which one was used.
 
 ### Notes (manual)
 

@@ -69,18 +69,22 @@ export function truncate(text, maxLength = DEFAULT_EXCERPT_LENGTH) {
 }
 
 /**
- * Substack puts the author's own subtitle in `description`, which is better
- * excerpt copy than anything sliced out of the body. The body is only used
- * when a post has no subtitle.
+ * Substack puts the author's own subtitle in the feed's description, which is
+ * better excerpt copy than anything sliced out of the body. The body is only
+ * used when a post has no subtitle.
+ *
+ * Takes a normalized shape so both the RSS and rss2json mappers share it.
  */
-export function toExcerpt(item, excerptLength = DEFAULT_EXCERPT_LENGTH) {
-  const subtitle = stripHtml(item.description ?? "");
-  if (subtitle !== "") {
-    return truncate(subtitle, excerptLength);
+export function toExcerpt(
+  { subtitle, body } = {},
+  excerptLength = DEFAULT_EXCERPT_LENGTH,
+) {
+  const subtitleText = stripHtml(subtitle ?? "");
+  if (subtitleText !== "") {
+    return truncate(subtitleText, excerptLength);
   }
 
-  const body = stripHtml(stripLeadingByline(item["content:encoded"] ?? ""));
-  return truncate(body, excerptLength);
+  return truncate(stripHtml(stripLeadingByline(body ?? "")), excerptLength);
 }
 
 function toIsoDate(pubDate) {
@@ -95,22 +99,24 @@ function toArray(value) {
   return Array.isArray(value) ? value : [value];
 }
 
-function toPost(item, excerptLength) {
-  const url = typeof item.link === "string" ? item.link : "";
+function toPost({ guid, title, link, publishedAt, subtitle, body }, excerptLength) {
+  const url = typeof link === "string" ? link : "";
 
   return {
-    id: typeof item.guid === "string" && item.guid ? item.guid : url,
-    title: typeof item.title === "string" ? item.title.trim() : "",
+    id: typeof guid === "string" && guid ? guid : url,
+    title: typeof title === "string" ? title.trim() : "",
     url,
-    publishedAt: toIsoDate(item.pubDate),
-    excerpt: toExcerpt(item, excerptLength),
+    publishedAt,
+    excerpt: toExcerpt({ subtitle, body }, excerptLength),
   };
 }
 
-/**
- * Maps a Substack RSS document into typed posts, newest first.
- * Items without a title or link are dropped rather than rendered broken.
- */
+/** Items without a title or link would render broken, so they are dropped. */
+function isRenderable(post) {
+  return post.title !== "" && post.url !== "";
+}
+
+/** Maps a Substack RSS document into typed posts, newest first. */
 export function mapFeedToPosts(xml, options = {}) {
   const {
     maxPosts = DEFAULT_MAX_POSTS,
@@ -124,10 +130,69 @@ export function mapFeedToPosts(xml, options = {}) {
   });
 
   const feed = parser.parse(xml);
-  const items = toArray(feed?.rss?.channel?.item);
 
-  return items
-    .map((item) => toPost(item, excerptLength))
-    .filter((post) => post.title !== "" && post.url !== "")
+  return toArray(feed?.rss?.channel?.item)
+    .map((item) =>
+      toPost(
+        {
+          guid: item.guid,
+          title: item.title,
+          link: item.link,
+          publishedAt: toIsoDate(item.pubDate),
+          subtitle: item.description,
+          body: item["content:encoded"],
+        },
+        excerptLength,
+      ),
+    )
+    .filter(isRenderable)
+    .slice(0, maxPosts);
+}
+
+/**
+ * rss2json reports pubDate as "2026-07-17 01:31:17": UTC, but with no marker
+ * saying so. Date parsing would treat that as local time and silently shift
+ * the post's date, so the zone is made explicit before parsing.
+ */
+const RSS2JSON_DATE_PATTERN = /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})$/;
+
+export function rss2JsonDateToIso(pubDate) {
+  if (typeof pubDate !== "string") {
+    return "";
+  }
+
+  const match = RSS2JSON_DATE_PATTERN.exec(pubDate);
+  return match ? toIsoDate(`${match[1]}T${match[2]}Z`) : toIsoDate(pubDate);
+}
+
+/**
+ * Maps an rss2json payload into the same typed posts as the RSS mapper.
+ * Used when Substack's Cloudflare blocks a direct fetch from CI.
+ */
+export function mapRss2JsonToPosts(payload, options = {}) {
+  const {
+    maxPosts = DEFAULT_MAX_POSTS,
+    excerptLength = DEFAULT_EXCERPT_LENGTH,
+  } = options;
+
+  if (payload?.status !== "ok") {
+    throw new Error(`rss2json returned status "${payload?.status}"`);
+  }
+
+  return toArray(payload.items)
+    .map((item) =>
+      toPost(
+        {
+          guid: item.guid,
+          title: item.title,
+          link: item.link,
+          publishedAt: rss2JsonDateToIso(item.pubDate),
+          subtitle: item.description,
+          body: item.content,
+        },
+        excerptLength,
+      ),
+    )
+    .filter(isRenderable)
     .slice(0, maxPosts);
 }

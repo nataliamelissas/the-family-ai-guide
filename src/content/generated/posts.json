@@ -1,6 +1,14 @@
 {
-  "fetchedAt": "2026-07-16T22:48:27.419Z",
+  "fetchedAt": "2026-07-17T05:04:18.488Z",
+  "source": "substack",
   "posts": [
+    {
+      "id": "https://thefamilyaiguide.substack.com/p/the-joy-of-coincidence",
+      "title": "The Joy of Coincidence",
+      "url": "https://thefamilyaiguide.substack.com/p/the-joy-of-coincidence",
+      "publishedAt": "2026-07-17T01:31:17.000Z",
+      "excerpt": "What a stranger at the park taught me about AI, emotion, and real connection"
+    },
     {
       "id": "https://thefamilyaiguide.substack.com/p/behind-the-screens-how-does-ai-work",
       "title": "Behind the Screens: How Does AI Work Anyway?",
@@ -28,13 +36,6 @@
       "url": "https://thefamilyaiguide.substack.com/p/his-name-is-arbor",
       "publishedAt": "2026-06-12T01:44:54.000Z",
       "excerpt": "My son thought ChatGPT was a person, and I had helped him to that conclusion."
-    },
-    {
-      "id": "https://thefamilyaiguide.substack.com/p/real-or-ai-the-new-literacy-nobody",
-      "title": "Real or AI? The New Literacy Nobody Taught Us",
-      "url": "https://thefamilyaiguide.substack.com/p/real-or-ai-the-new-literacy-nobody",
-      "publishedAt": "2026-06-05T01:31:01.000Z",
-      "excerpt": "How to navigate truth in an age where AI makes everything look real."
     }
   ]
 }

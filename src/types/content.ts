@@ -10,6 +10,8 @@ export interface Post {
 /** The shape of the build-time generated posts file. */
 export interface GeneratedPosts {
   fetchedAt: string;
+  /** Which feed source succeeded: the direct Substack feed, or the fallback. */
+  source?: "substack" | "rss2json";
   posts: Post[];
 }
 
